@@ -80,6 +80,25 @@ docker compose up --build
 ```
 
 ## Architecture
+
+Documents are chunked once at startup and indexed two ways:
+
+```mermaid
+flowchart LR
+    DOCS["Documents<br/><small>md or txt</small>"] --> CHUNK["Sentence-aware chunking<br/><small>180 tokens, 40 overlap</small>"]
+    CHUNK --> EMBED["Embed chunks"]
+    CHUNK --> INDEX["Build inverted index"]
+    EMBED --> STORE[("Vector store<br/><small>numpy cosine</small>")]
+    INDEX --> BM25S[("BM25 index<br/><small>postings + lengths</small>")]
+
+    classDef proc fill:#EEEDFE,stroke:#534AB7,color:#26215C
+    classDef store fill:#E6F1FB,stroke:#185FA5,color:#042C53
+    class CHUNK,EMBED,INDEX proc
+    class STORE,BM25S store
+```
+
+A query then hits both indexes in parallel:
+
 ```mermaid
 flowchart TD
     Q["Question"] --> BM25["BM25 lexical<br/><small>exact terms, codes</small>"]
@@ -105,7 +124,6 @@ flowchart TD
     class GEN,VERIFY,STRIP,GROUND generation
     class Q,OUT io
 ```
-
 
 ## Design decisions
 
@@ -170,11 +188,33 @@ Results on the bundled 6-document corpus, 24 labelled questions (2 unanswerable)
 | groundedness | 1.000 | lexical support of each sentence against its cited passage |
 | abstention_accuracy | 1.000 | unanswerable questions correctly refused |
 | false_abstention_rate | 0.000 | answerable questions wrongly refused |
-| latency p50 / p95 | 1.25 ms / 1.40 ms | end-to-end, in-process |
+| latency p50 / p95 | 0.87 ms / 1.27 ms | end-to-end, in-process |
 
 CI fails the build if recall drops below 0.70 or groundedness below 0.40. The
 thresholds sit deliberately below the committed baseline: the gate exists to catch
 drift and regressions, not to enforce an exact number.
+
+Every quality metric above is reproducible bit-for-bit on any machine, because the
+default embedder and generator are both deterministic. Only latency varies with
+hardware.
+
+```mermaid
+flowchart LR
+    PUSH["Push or PR"] --> LINT["Ruff<br/><small>lint + format</small>"]
+    PUSH --> TEST["Pytest<br/><small>78 tests, py3.11 + 3.12</small>"]
+    TEST --> EVAL["Eval harness<br/><small>24 labelled questions</small>"]
+    EVAL --> GATE{"recall >= 0.70<br/>groundedness >= 0.40"}
+    GATE -->|"pass"| DOCKER["Docker build<br/><small>+ live smoke test</small>"]
+    GATE -->|"fail"| RED["Build fails"]
+    DOCKER --> GREEN["Merge"]
+
+    classDef ok fill:#EAF3DE,stroke:#3B6D11,color:#173404
+    classDef bad fill:#FCEBEB,stroke:#A32D2D,color:#501313
+    classDef step fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+    class GREEN,DOCKER ok
+    class RED bad
+    class PUSH,LINT,TEST,EVAL step
+```
 
 ## Limitations
 
@@ -219,6 +259,29 @@ latency budget.
 | `GET` | `/stats` | index size, active config, request counters |
 | `GET` | `/metrics` | Prometheus exposition format |
 | `GET` | `/docs` | OpenAPI UI |
+
+What a single `/query` call actually does:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as FastAPI
+    participant R as Retriever
+    participant G as Generator
+    participant V as Verifier
+
+    C->>A: POST /query
+    A->>R: retrieve(question, top_k)
+    R->>R: BM25 + dense, fuse, diversify
+    R-->>A: 5 passages
+    A->>G: generate(question, passages)
+    G-->>A: answer with markers
+    A->>V: resolve citations
+    V->>V: drop out-of-range markers
+    V->>V: score groundedness
+    V-->>A: citations + score
+    A-->>C: 200 answer, citations, grounded
+```
 
 ## Configuration
 
