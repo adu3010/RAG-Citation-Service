@@ -9,7 +9,6 @@ evaluation harness wired into CI as a regression gate.
 
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-
 [![CI](https://github.com/adu3010/RAG-Citation-Service/actions/workflows/ci.yml/badge.svg)](https://github.com/adu3010/RAG-Citation-Service/actions/workflows/ci.yml)
 
 ---
