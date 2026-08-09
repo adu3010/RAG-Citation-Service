@@ -7,7 +7,6 @@ Hybrid retrieval (BM25 + dense) fused with reciprocal rank fusion, MMR
 diversification, verified citations, a groundedness gate, and an offline
 evaluation harness wired into CI as a regression gate.
 
-[![CI](https://github.com/adu3010/rag-citations-service/actions/workflows/ci.yml/badge.svg)](https://github.com/adu3010/rag-citations-service/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
