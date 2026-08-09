@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/banner.svg" alt="RAG Citation Service" width="100%">
+</p>
+
 # Citation-Grounded RAG Service
 
 A retrieval-augmented generation service that will not tell you something without
