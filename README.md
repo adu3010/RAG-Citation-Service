@@ -9,8 +9,6 @@ evaluation harness wired into CI as a regression gate.
 
 ![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
 ![Tests](https://img.shields.io/badge/tests-78%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/recall%405-1.00-brightgreen)
 ![Docker](https://img.shields.io/badge/docker-ready-2496ED)
