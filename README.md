@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.svg" alt="RAG Citation Service" width="100%">
+  <img src="rag_citation_banner.png" alt="RAG Citation Service" width="100%">
 </p>
 
 # Citation-Grounded RAG Service
