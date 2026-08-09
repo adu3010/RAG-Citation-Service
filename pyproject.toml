@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-citations-service"
+version = "1.0.0"
+description = "Citation-grounded hybrid RAG service with an offline evaluation harness"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Aditya Gadkari" }]
+keywords = ["rag", "retrieval", "bm25", "evaluation", "fastapi", "llm"]
+classifiers = [
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: FastAPI",
+    "License :: OSI Approved :: MIT License",
+]
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "uvicorn[standard]>=0.30,<1.0",
+    "pydantic>=2.7,<3.0",
+    "numpy>=1.26,<3.0",
+]
+
+[project.optional-dependencies]
+# Real sentence embeddings. Pulls torch, so it is deliberately not a base dependency.
+dense = ["sentence-transformers>=3.0"]
+# LLM generation through the Anthropic Messages API.
+llm = ["anthropic>=0.40"]
+dev = ["pytest>=8.0", "httpx>=0.27", "ruff>=0.6"]
+
+[project.scripts]
+rag-index = "rag.__main__:main"
+rag-eval = "rag.eval.runner:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+ignore = [
+    # Long lines inside prose docstrings and Prometheus exposition strings.
+    "E501",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests import the package after a sys.path insert, and assert freely.
+"tests/*" = ["E402"]

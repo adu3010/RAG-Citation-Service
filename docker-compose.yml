@@ -1,0 +1,32 @@
+services:
+  rag:
+    build: .
+    image: rag-citations-service:latest
+    ports:
+      - "8000:8000"
+    environment:
+      # Defaults keep the service fully offline: no model downloads, no API key.
+      RAG_EMBEDDER: hashing
+      RAG_GENERATOR: extractive
+      RAG_TOP_K: "5"
+      LOG_LEVEL: INFO
+      # Uncomment to switch to LLM generation, and pass the key from your shell
+      # rather than writing it into this file.
+      # RAG_GENERATOR: anthropic
+      # ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    volumes:
+      # Mount your own corpus over the sample one without rebuilding the image.
+      - ./data/corpus:/app/data/corpus:ro
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8000/readyz"]
+      interval: 30s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+    restart: unless-stopped
+    # The service holds the index in memory; cap it so a runaway ingest cannot
+    # take the host down with it.
+    deploy:
+      resources:
+        limits:
+          memory: 1g
